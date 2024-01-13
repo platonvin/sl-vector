@@ -59,5 +59,12 @@ int main()
     printf("%d\n", length(mul(ivec2(1,1), div(ivec2(9,9), 2))) );
     assert(length(mul(ivec2(1,1), div(ivec2(9,9), 2))) == 5);
 
+
+    assert(all(equal(floor(vec3(1.1,2.2,3.3)), vec4(dvec3(1,2,3),666).xyz)));
+    assert(all(equal(ceil(vec3(1.1,2.2,3.3)), add(vec4(dvec3(1,2,3),666).xyz, vec3(1,1,1)))));
+    
+    printf("test passed\n");
+
+
     return 0;
 }
