@@ -13,3 +13,8 @@ bvec3 v4 = equal(ivec3(2,3,4), ivec3(2,3,5)); // v4 is {1, 1, 0}
 bool  b1 = any(v4); //1, at least one component is 1
 bool  b2 = all(v4); //0, at least one component is 0
 ```
+
+## list of supported swizzle's:
+.x, .y, .z, .w; for 2d, 3d, 4d vectors
+.xy, .yz, .zw;  for 2d, 3d, 4d vectors
+.xyz, .yzw;     for         4d vectors
