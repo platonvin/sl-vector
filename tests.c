@@ -44,6 +44,7 @@ int main()
     assert(!any(b00));
     assert(any(not(b00)));
     assert(all(not(b00)));
+    assert(all(bvec4(bvec3(bvec2(true, true), true), true)));
 
     assert(all(greaterThan(vec4(2,2,2,2).xyz, vec4(1,1,1,999).xyz)));
     assert(all(equal(ivec4(2,2,2,2).yz, ivec4(-666,2,2,999).yz)));
@@ -56,15 +57,23 @@ int main()
     assert(all(equal(ivec2(4,4), div(ivec2(8,8), ivec2(2,2)))));
 
     assert(dot(ivec2(1,1), div(ivec2(9,9), 2)) == 8);
-    printf("%d\n", length(mul(ivec2(1,1), div(ivec2(9,9), 2))) );
     assert(length(mul(ivec2(1,1), div(ivec2(9,9), 2))) == 5);
 
 
     assert(all(equal(floor(vec3(1.1,2.2,3.3)), vec4(dvec3(1,2,3),666).xyz)));
     assert(all(equal(ceil(vec3(1.1,2.2,3.3)), add(vec4(dvec3(1,2,3),666).xyz, vec3(1,1,1)))));
+
+    assert(floor(69.420) == 69.0);
+    assert(ceil (69.420) == 70.0);
+    assert(round(69.420) == 69.0);
     
+    assert(all(equal(floor(ivec2(69.420, 666.888)), ivec2(69, 666))));
+    assert(all(equal(ceil (ivec2(69.420, 666.888)), ivec2(69, 666))));
+    assert(all(equal(round(ivec2(69.420, 666.888)), ivec2(69, 666))));
+
     printf("test passed\n");
 
+    // printf("%d\n", length(mul(ivec2(1,1), div(ivec2(9,9), 2))) );
 
     return 0;
 }

@@ -1,5 +1,5 @@
 .ONESHELL:
 
 test:
-	gcc tests.c -o test -O1
+	gcc tests.c -o test -std=gnu2x
 	test

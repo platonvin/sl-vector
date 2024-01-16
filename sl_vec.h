@@ -1,3 +1,8 @@
+#pragma once
+
+#ifndef SL_VEC_INCLUDE_GUARD
+#define SL_VEC_INCLUDE_GUARD
+
 #include <tgmath.h>
 #include <stdbool.h>
 /*
@@ -8,12 +13,25 @@ example:
 vec4 my_vector = vec4(ivec3(7,6.66,5.0f), 1.0); //my_vector is {7.0, 6.0, 5.0, 1.0}
 
 things like
-vec3 v3 = v4.xyz; are supported 
-things like
-vec3 v3 = v4.xzy; are not supported
-If someone knows how to manually align parts of struct in union, please fix this
-*/
+vec3 v3 = v4.xyz; 
+or
+vec3 v3 = v4.yzw; 
+are supported 
 
+things like
+vec3 v3 = v4.xzy; 
+or
+vec3 v3 = v4.xxx; 
+are not supported
+
+list of supported swizzle's:
+.x, .y, .z, .w; for 2d, 3d, 4d vectors
+.xy, .yz, .zw; for 2d, 3d, 4d vectors
+.xyz, .yzw; for 4d vectors
+could be supported but why would you want to write v3.xyz when its same as v3?
+
+If someone knows how to manually align parts of struct in union, please tell me (so vec.xxx could be used)
+*/
 
 //creating of vector types. Extra type for .xy for vec2
 #define _create_vec_types(type, prefix) \
@@ -45,11 +63,11 @@ typedef union prefix##vec4 {  \
 _create_vec_types(   int, i)
 _create_vec_types( float,  )
 _create_vec_types(double, d)
-_create_vec_types(bool  , b)
+_create_vec_types(  bool, b)
 
 #define GET_MACRO(_0, _1, _2, _3, _4, NAME, ...) NAME
-#define _1arg_wrapper(x) x
 #define CONCAT(x,y) x ## y
+#define _1arg_wrapper(x) x
 #define _2arg_wrapper(x,y) x,y
 #define _3arg_wrapper(x,y,z) x,y,z
 #define _create_type_error() _assert("WRONG TYPE IN VECTOR CONSTRUCTOR\n", __FILE__, __LINE__)
@@ -100,6 +118,7 @@ _Generic((var),\
 #define ivec2(...) _vector2d(i, __VA_ARGS__)
 #define  vec2(...) _vector2d( , __VA_ARGS__)
 #define dvec2(...) _vector2d(d, __VA_ARGS__)
+#define bvec2(...) _vector2d(b, __VA_ARGS__)
 
 
 
@@ -129,6 +148,7 @@ vec;})
 #define ivec3(...) _vector3d(i, __VA_ARGS__)
 #define  vec3(...) _vector3d( , __VA_ARGS__)
 #define dvec3(...) _vector3d(d, __VA_ARGS__)
+#define bvec3(...) _vector3d(b, __VA_ARGS__)
 
 
 
@@ -221,6 +241,7 @@ vec;})
 #define ivec4(...) _vector4d(i, __VA_ARGS__)
 #define  vec4(...) _vector4d( , __VA_ARGS__)
 #define dvec4(...) _vector4d(d, __VA_ARGS__)
+#define bvec4(...) _vector4d(b, __VA_ARGS__)
 
 
 /*
@@ -228,7 +249,6 @@ Part with actual functions
 Functions are not simple macro and actual _Generic function calls 
 this is because of you might not want everything to be "inlined" as it is with macro
 */
-
 
 int _fun_mod_int (int a, int b) {return a % b;}
 bool _fun_mod_bool (bool a, bool b) {return a % b;}
@@ -244,6 +264,11 @@ int _fun_ceil_int (int var) {return var;}
 bool _fun_ceil_bool (bool var) {return var;}
 float _fun_ceil_float (float var) {return ceilf(var);}
 double _fun_ceil_double (double var) {return ceilf(var);}  //TODO : fix this with propper macro thing
+
+int _fun_round_int (int var) {return var;}
+bool _fun_round_bool (bool var) {return var;}
+float _fun_round_float (float var) {return roundf(var);}
+double _fun_round_double (double var) {return round(var);}  //TODO : fix this with propper macro thing
 
 #define _create_1d_fun_sign(type) \
     type _fun_sign_ ##type (type var) {return var < 0 ? -1 : +1;}
@@ -373,40 +398,44 @@ bvec3 _fun_not_##prefix##vec3(prefix##vec3 vec)  {return (bvec3) {!vec.x, !vec.y
 bvec4 _fun_not_##prefix##vec4(prefix##vec4 vec)  {return (bvec4) {!vec.x, !vec.y, !vec.z, !vec.w};}
 
 #define _create_fun_abs(prefix, type) \
-prefix##vec2 _fun_abs_##prefix##vec2(prefix##vec2 vec) { return (prefix##vec2) {_fun_abs_ ## type (vec.x), _fun_abs_ ## type (vec.y)}                        ;} \
-prefix##vec3 _fun_abs_##prefix##vec3(prefix##vec3 vec) { return (prefix##vec3) {_fun_abs_ ## type (vec.x), _fun_abs_ ## type (vec.y), _fun_abs_ ## type (vec.z)}            ;} \
-prefix##vec4 _fun_abs_##prefix##vec4(prefix##vec4 vec) { return (prefix##vec4) {_fun_abs_ ## type (vec.x), _fun_abs_ ## type (vec.y), _fun_abs_ ## type (vec.z), _fun_abs_ ## type (vec.w)};}
+prefix##vec2 _fun_abs_##prefix##vec2(prefix##vec2 vec) {return (prefix##vec2) {(_fun_abs_ ## type) (vec.x), (_fun_abs_ ## type) (vec.y)}                                                      ;} \
+prefix##vec3 _fun_abs_##prefix##vec3(prefix##vec3 vec) {return (prefix##vec3) {(_fun_abs_ ## type) (vec.x), (_fun_abs_ ## type) (vec.y), (_fun_abs_ ## type) (vec.z)}                           ;} \
+prefix##vec4 _fun_abs_##prefix##vec4(prefix##vec4 vec) {return (prefix##vec4) {(_fun_abs_ ## type) (vec.x), (_fun_abs_ ## type) (vec.y), (_fun_abs_ ## type) (vec.z), (_fun_abs_ ## type) (vec.w)};}
 
 #define _create_fun_sign(prefix, type) \
-prefix##vec2 _fun_sign_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) { copysign(1, v.x), copysign(1, v.y) }; } \
-prefix##vec3 _fun_sign_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) { copysign(1, v.x), copysign(1, v.y), copysign(1, v.z) }; } \
-prefix##vec4 _fun_sign_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) { copysign(1, v.x), copysign(1, v.y), copysign(1, v.z), copysign(1, v.w) }; }
+prefix##vec2 _fun_sign_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) { copysign(1, v.x), copysign(1, v.y) }                                    ;} \
+prefix##vec3 _fun_sign_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) { copysign(1, v.x), copysign(1, v.y), copysign(1, v.z) }                  ;} \
+prefix##vec4 _fun_sign_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) { copysign(1, v.x), copysign(1, v.y), copysign(1, v.z), copysign(1, v.w) };}
 
 #define _create_fun_floor(prefix, type) \
-prefix##vec2 _fun_floor_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) {_fun_floor_ ## type (v.x), _fun_floor_ ## type (v.y) }; } \
-prefix##vec3 _fun_floor_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) {_fun_floor_ ## type (v.x), _fun_floor_ ## type (v.y), _fun_floor_ ## type (v.z) }; } \
-prefix##vec4 _fun_floor_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) {_fun_floor_ ## type (v.x), _fun_floor_ ## type (v.y), _fun_floor_ ## type (v.z), _fun_floor_ ## type (v.w) }; }
+prefix##vec2 _fun_floor_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) {(_fun_floor_ ## type) (v.x), (_fun_floor_ ## type) (v.y) }                                                      ;} \
+prefix##vec3 _fun_floor_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) {(_fun_floor_ ## type) (v.x), (_fun_floor_ ## type) (v.y), (_fun_floor_ ## type) (v.z) }                           ;} \
+prefix##vec4 _fun_floor_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) {(_fun_floor_ ## type) (v.x), (_fun_floor_ ## type) (v.y), (_fun_floor_ ## type) (v.z), (_fun_floor_ ## type) (v.w) };}
 
 #define _create_fun_ceil(prefix, type) \
-prefix##vec2 _fun_ceil_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) { _fun_ceil_ ## type (v.x), _fun_ceil_ ## type (v.y) }; } \
-prefix##vec3 _fun_ceil_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) { _fun_ceil_ ## type (v.x), _fun_ceil_ ## type (v.y), _fun_ceil_ ## type (v.z) }; } \
-prefix##vec4 _fun_ceil_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) { _fun_ceil_ ## type (v.x), _fun_ceil_ ## type (v.y), _fun_ceil_ ## type (v.z), _fun_ceil_ ## type (v.w) }; }
+prefix##vec2 _fun_ceil_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) { (_fun_ceil_ ## type) (v.x), (_fun_ceil_ ## type) (v.y) }                                                    ;} \
+prefix##vec3 _fun_ceil_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) { (_fun_ceil_ ## type) (v.x), (_fun_ceil_ ## type) (v.y), (_fun_ceil_ ## type) (v.z) }                          ;} \
+prefix##vec4 _fun_ceil_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) { (_fun_ceil_ ## type) (v.x), (_fun_ceil_ ## type) (v.y), (_fun_ceil_ ## type) (v.z), (_fun_ceil_ ## type) (v.w) };}
+
+#define _create_fun_round(prefix, type) \
+prefix##vec2 _fun_round_##prefix##vec2(prefix##vec2 v) { return (prefix##vec2) { (_fun_round_ ## type) (v.x), (_fun_round_ ## type) (v.y) }                                                    ;} \
+prefix##vec3 _fun_round_##prefix##vec3(prefix##vec3 v) { return (prefix##vec3) { (_fun_round_ ## type) (v.x), (_fun_round_ ## type) (v.y), (_fun_round_ ## type) (v.z) }                          ;} \
+prefix##vec4 _fun_round_##prefix##vec4(prefix##vec4 v) { return (prefix##vec4) { (_fun_round_ ## type) (v.x), (_fun_round_ ## type) (v.y), (_fun_round_ ## type) (v.z), (_fun_round_ ## type) (v.w) };}
 
 #define _create_fun_mod(prefix, type) \
-prefix##vec2 _fun_mod_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { _fun_mod_ ## type (v1.x, v2.x), _fun_mod_ ## type (v1.y, v2.y) }; } \
-prefix##vec3 _fun_mod_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { _fun_mod_ ## type (v1.x, v2.x), _fun_mod_ ## type (v1.y, v2.y), _fun_mod_ ## type (v1.z, v2.z) }; } \
-prefix##vec4 _fun_mod_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { _fun_mod_ ## type (v1.x, v2.x), _fun_mod_ ## type (v1.y, v2.y), _fun_mod_ ## type (v1.z, v2.z), _fun_mod_ ## type (v1.w, v2.w) }; }
+prefix##vec2 _fun_mod_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { (_fun_mod_ ## type) (v1.x, v2.x), (_fun_mod_ ## type) (v1.y, v2.y) }                                                                ;} \
+prefix##vec3 _fun_mod_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { (_fun_mod_ ## type) (v1.x, v2.x), (_fun_mod_ ## type) (v1.y, v2.y), (_fun_mod_ ## type) (v1.z, v2.z) }                                ;} \
+prefix##vec4 _fun_mod_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { (_fun_mod_ ## type) (v1.x, v2.x), (_fun_mod_ ## type) (v1.y, v2.y), (_fun_mod_ ## type) (v1.z, v2.z), (_fun_mod_ ## type) (v1.w, v2.w) };}
 
 #define _create_fun_min(prefix, type) \
-prefix##vec2 _fun_min_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { _fun_min_ ## type (v1.x, v2.x), _fun_min_ ## type (v1.y, v2.y) }; } \
-prefix##vec3 _fun_min_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { _fun_min_ ## type (v1.x, v2.x), _fun_min_ ## type (v1.y, v2.y), _fun_min_ ## type (v1.z, v2.z) }; } \
-prefix##vec4 _fun_min_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { _fun_min_ ## type (v1.x, v2.x), _fun_min_ ## type (v1.y, v2.y), _fun_min_ ## type (v1.z, v2.z), _fun_min_ ## type (v1.w, v2.w) }; }
+prefix##vec2 _fun_min_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { (_fun_min_ ## type) (v1.x, v2.x), (_fun_min_ ## type) (v1.y, v2.y) }                                                                ;} \
+prefix##vec3 _fun_min_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { (_fun_min_ ## type) (v1.x, v2.x), (_fun_min_ ## type) (v1.y, v2.y), (_fun_min_ ## type) (v1.z, v2.z) }                                ;} \
+prefix##vec4 _fun_min_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { (_fun_min_ ## type) (v1.x, v2.x), (_fun_min_ ## type) (v1.y, v2.y), (_fun_min_ ## type) (v1.z, v2.z), (_fun_min_ ## type) (v1.w, v2.w) };}
 
 #define _create_fun_max(prefix, type) \
-prefix##vec2 _fun_max_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { _fun_max_ ## type (v1.x, v2.x), _fun_max_ ## type (v1.y, v2.y) }; } \
-prefix##vec3 _fun_max_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { _fun_max_ ## type (v1.x, v2.x), _fun_max_ ## type (v1.y, v2.y), _fun_max_ ## type (v1.z, v2.z) }; } \
-prefix##vec4 _fun_max_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { _fun_max_ ## type (v1.x, v2.x), _fun_max_ ## type (v1.y, v2.y), _fun_max_ ## type (v1.z, v2.z), _fun_max_ ## type (v1.w, v2.w) }; }
-
+prefix##vec2 _fun_max_##prefix##vec2(prefix##vec2 v1, prefix##vec2 v2) { return (prefix##vec2) { (_fun_max_ ## type) (v1.x, v2.x), (_fun_max_ ## type) (v1.y, v2.y) }                                                                ;} \
+prefix##vec3 _fun_max_##prefix##vec3(prefix##vec3 v1, prefix##vec3 v2) { return (prefix##vec3) { (_fun_max_ ## type) (v1.x, v2.x), (_fun_max_ ## type) (v1.y, v2.y), (_fun_max_ ## type) (v1.z, v2.z) }                                ;} \
+prefix##vec4 _fun_max_##prefix##vec4(prefix##vec4 v1, prefix##vec4 v2) { return (prefix##vec4) { (_fun_max_ ## type) (v1.x, v2.x), (_fun_max_ ## type) (v1.y, v2.y), (_fun_max_ ## type) (v1.z, v2.z), (_fun_max_ ## type) (v1.w, v2.w) };}
 
 #define _create_funs(name) \
 _create_fun_##name(i)\
@@ -426,6 +455,7 @@ _create_funs_compwise(max)
 _create_funs_compwise(mod)
 _create_funs_compwise(floor)
 _create_funs_compwise(ceil)
+_create_funs_compwise(round)
 
 _create_funs(add)
 _create_funs(sub)
@@ -448,7 +478,6 @@ _create_funs(notEqual)
 _create_fun_any(b)
 _create_fun_all(b)
 _create_fun_not(b)
-
 
 #define _call_fun(name, vec, ...) \
 _Generic((vec),\
@@ -596,13 +625,17 @@ _Generic((vec),\
 #define min(vec)  _call_fun(min , vec)
 #define max(vec)  _call_fun(max , vec)
 #define abs(vec)   _call_intersect_with_math(abs  , vec)
-#undef floor
-#undef ceil
-#define floor(vec) _call_intersect_with_math(floor, vec)
-#define ceil(vec)  _call_intersect_with_math(ceil , vec)
 
 /*
 This macro's are also defined in tgmath.h, so i have to undefine them and then define back
 Sometimes single-component tgmath functions are used in vector ones so i have to create one more macro
 */
-// #undef floor
+#undef floor
+#undef ceil
+#undef round
+#define floor(vec) _call_intersect_with_math(floor, vec)
+#define ceil(vec)  _call_intersect_with_math(ceil , vec)
+#define round(vec)  _call_intersect_with_math(round , vec)
+
+
+#endif // SL_VEC_INCLUDE_GUARD
