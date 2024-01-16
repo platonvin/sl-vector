@@ -16,5 +16,7 @@ bool  b2 = all(v4); //0, at least one component is 0
 
 ## list of supported swizzle's:
 .x, .y, .z, .w; for 2d, 3d, 4d vectors
+
 .xy, .yz, .zw;  for 2d, 3d, 4d vectors
+
 .xyz, .yzw;     for         4d vectors
